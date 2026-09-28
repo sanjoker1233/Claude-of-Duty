@@ -679,6 +679,127 @@ const CSS = `
 
 /* ============================================================== fadeouts */
 .ow-hidden { display:none !important; }
+
+/* ============================================================== touch (Android web remix) */
+.ow-touch {
+  position: fixed; inset: 0; z-index: 20;
+  pointer-events: none;
+  touch-action: none;
+  user-select: none; -webkit-user-select: none;
+  font-family: var(--ff);
+}
+/* look surface: right side, behind buttons */
+.ow-tz-look {
+  position: absolute; top: 0; right: 0; bottom: 0; left: 34%;
+  pointer-events: auto; touch-action: none;
+}
+/* joystick: bottom-left, clear of the HUD chrome */
+.ow-tz-stick {
+  position: absolute;
+  left: calc(env(safe-area-inset-left, 0px) + 18px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 90px);
+  width: 148px; height: 148px;
+  pointer-events: auto; touch-action: none;
+}
+.ow-tz-base {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.28);
+  background: radial-gradient(circle, rgba(255,255,255,.05) 0%, rgba(255,255,255,.02) 70%, transparent 100%);
+}
+.ow-tz-knob {
+  position: absolute; left: 50%; top: 50%;
+  width: 62px; height: 62px; border-radius: 50%;
+  transform: translate(-50%,-50%);
+  background: rgba(255,255,255,.22);
+  border: 2px solid rgba(255,255,255,.5);
+  box-shadow: 0 2px 12px rgba(0,0,0,.5);
+}
+/* buttons: right cluster + left utility column */
+.ow-tb {
+  position: absolute; pointer-events: auto; touch-action: none;
+  appearance: none; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.35);
+  background: rgba(10,14,18,.42); color: rgba(238,244,247,.92);
+  font-family: var(--ff); font-weight: 700; font-size: 12px; letter-spacing: .08em;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+}
+.ow-tb.held { background: rgba(255,176,42,.45); border-color: var(--amber); }
+.ow-tb.sticky { background: rgba(121,210,255,.4); border-color: var(--cyan); }
+.ow-tb-fire {
+  right: calc(env(safe-area-inset-right, 0px) + 26px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+  width: 92px; height: 92px; font-size: 14px;
+  border-color: rgba(255,63,49,.6);
+}
+.ow-tb-fire.held { background: rgba(255,63,49,.5); border-color: var(--red); }
+.ow-tb-ads {
+  right: calc(env(safe-area-inset-right, 0px) + 132px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 66px);
+  width: 64px; height: 64px;
+}
+.ow-tb-jump {
+  right: calc(env(safe-area-inset-right, 0px) + 44px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 204px);
+  width: 64px; height: 64px;
+}
+.ow-tb-crouch {
+  right: calc(env(safe-area-inset-right, 0px) + 122px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 160px);
+  width: 56px; height: 56px; font-size: 10px;
+}
+.ow-tb-reload {
+  right: calc(env(safe-area-inset-right, 0px) + 190px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 120px);
+  width: 52px; height: 52px; font-size: 10px;
+}
+.ow-tb-sprint {
+  left: calc(env(safe-area-inset-left, 0px) + 30px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 252px);
+  width: 56px; height: 56px; font-size: 9px;
+}
+.ow-tb-use {
+  right: calc(env(safe-area-inset-right, 0px) + 196px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 196px);
+  width: 52px; height: 52px; font-size: 10px;
+}
+.ow-tb-swap {
+  left: calc(env(safe-area-inset-left, 0px) + 100px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 252px);
+  width: 56px; height: 56px; font-size: 10px;
+}
+.ow-tz-pause {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  right: calc(env(safe-area-inset-right, 0px) + 12px);
+  width: 44px; height: 44px; border-radius: 10px;
+  pointer-events: auto;
+  appearance: none; border: 1px solid rgba(255,255,255,.3);
+  background: rgba(10,14,18,.5); color: var(--ink);
+  font-size: 14px; font-weight: 700;
+}
+.ow-tz-veil {
+  position: absolute; inset: 0; pointer-events: auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; background: rgba(4,6,9,.72);
+}
+.ow-tz-title { font-size: 30px; letter-spacing: .35em; color: var(--ink); }
+.ow-tz-sub {
+  font-size: 14px; letter-spacing: .3em; color: var(--amber);
+  border: 1px solid var(--amber); border-radius: 999px; padding: 12px 26px;
+}
+/* landscape phones: tighten the cluster so it never covers the crosshair */
+@media (max-height: 500px) {
+  .ow-tz-stick { bottom: calc(env(safe-area-inset-bottom, 0px) + 30px); width: 120px; height: 120px; }
+  .ow-tz-knob { width: 52px; height: 52px; }
+  .ow-tb-fire { bottom: calc(env(safe-area-inset-bottom, 0px) + 36px); width: 78px; height: 78px; }
+  .ow-tb-ads { bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); }
+  .ow-tb-jump { bottom: calc(env(safe-area-inset-bottom, 0px) + 128px); }
+  .ow-tb-crouch { bottom: calc(env(safe-area-inset-bottom, 0px) + 96px); }
+  .ow-tb-reload { bottom: calc(env(safe-area-inset-bottom, 0px) + 70px); }
+  .ow-tb-sprint, .ow-tb-swap { bottom: calc(env(safe-area-inset-bottom, 0px) + 168px); }
+  .ow-tb-use { bottom: calc(env(safe-area-inset-bottom, 0px) + 130px); }
+}
 `;
 
 const DEFS = `

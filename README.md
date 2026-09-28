@@ -17,6 +17,26 @@ npm run dev          # http://127.0.0.1:5173
 Click the canvas to lock the cursor. WASD move, mouse aim, LMB fire, RMB ADS,
 R reload, Shift sprint, Ctrl crouch, Space jump, Q/E lean, Esc release.
 
+## Android web version
+
+The same build is an installable PWA tuned for Android handsets:
+
+```bash
+npm run build          # dist/ is self-contained: manifest, icons, service worker
+```
+
+- **Install:** open the served URL in Chrome Android → *Install* (or the
+  INSTALL chip). Runs fullscreen, landscape, offline after the first visit
+  (`public/sw.js`, cache-first for assets, network-first for the document).
+- **Controls:** left virtual joystick to move (push fully forward to sprint),
+  drag the right half to aim, FIRE / ADS (tap = sticky) / JUMP / RLD / CRCH /
+  SPRNT / USE / WPN buttons. First tap on TAP TO DEPLOY unlocks audio,
+  requests fullscreen + wake lock.
+- **Performance:** touch handsets auto-select the `android` quality preset
+  (0.6 render scale, 2 cascades, no TAA/GTAO/SSR/volumetrics, DPR capped at 1)
+  unless `?q=` overrides it. Desktop behaviour is unchanged (`ultra`,
+  no touch overlay). Test the overlay on desktop with `?touch=1`.
+
 ## What's in it
 
 | subsystem | what it does |

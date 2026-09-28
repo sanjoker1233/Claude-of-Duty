@@ -2,19 +2,92 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <meta name="description" content="OVERWATCH — browser tactical shooter with touch controls. Installable, offline-ready on Android." />
+    <meta name="theme-color" content="#05070a" />
+    <!-- Android / PWA -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="OVERWATCH" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+    <!-- iOS (best-effort; primary target is Android) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="OVERWATCH" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>OVERWATCH — Tactical Shooter</title>
     <style>
       :root { color-scheme: dark; }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
-      body { font-family: "Inter", "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-      #game { display: block; width: 100vw; height: 100vh; touch-action: none; cursor: none; }
+      html, body {
+        width: 100%; height: 100%; overflow: hidden; background: #05070a;
+        position: fixed; inset: 0; /* no rubber-banding / scroll on Android */
+        overscroll-behavior: none;
+      }
+      body {
+        font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none; -webkit-user-select: none;
+        touch-action: none;
+        padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+          env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+      }
+      #game {
+        display: block; width: 100vw; height: 100vh; height: 100dvh;
+        touch-action: none; cursor: none;
+      }
+      #pwa-install {
+        position: fixed; z-index: 40;
+        left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+        transform: translateX(-50%);
+        display: none;
+        appearance: none; border: 1px solid #ffb02a; border-radius: 999px;
+        background: rgba(5, 7, 10, 0.85); color: #ffb02a;
+        font: 700 13px/1 "Inter", system-ui, sans-serif; letter-spacing: 0.18em;
+        padding: 14px 26px; cursor: pointer;
+      }
     </style>
   </head>
   <body>
     <canvas id="game"></canvas>
     <div id="ui"></div>
+    <button id="pwa-install" type="button">INSTALL</button>
     <script type="module" src="/src/main.js"></script>
+    <script>
+      // PWA: service worker + deferred install prompt. Plain script (no
+      // dependency on the module graph) so installability never depends on
+      // WebGL booting successfully.
+      (function () {
+        if ('serviceWorker' in navigator && !/capture=1/.test(location.search)) {
+          addEventListener('load', function () {
+            navigator.serviceWorker.register('/sw.js').catch(function () {});
+          });
+        }
+        var btn = document.getElementById('pwa-install');
+        var deferred = null;
+        addEventListener('beforeinstallprompt', function (e) {
+          e.preventDefault();
+          deferred = e;
+          btn.style.display = '';
+        });
+        btn.addEventListener('click', function () {
+          if (!deferred) return;
+          deferred.prompt();
+          deferred.userChoice.then(function () {
+            deferred = null;
+            btn.style.display = 'none';
+          });
+        });
+        addEventListener('appinstalled', function () {
+          deferred = null;
+          btn.style.display = 'none';
+        });
+      })();
+    </script>
   </body>
 </html>

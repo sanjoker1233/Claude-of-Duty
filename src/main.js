@@ -24,8 +24,30 @@ const capture = params.get('capture') === '1';
 // free-run. See the long comment in src/dev/shots.js.
 const lockstep = capture && params.get('lockstep') === '1';
 
+/**
+ * Android web remix: handset GPUs melt on the desktop `ultra` default.
+ * An explicit `?q=` (or capture mode, which the pixel gate pins to ultra)
+ * always wins; otherwise touch handsets drop to the `android`/`low` presets.
+ */
+function defaultQuality() {
+  if (capture) return 'ultra';
+  try {
+    const ua = navigator.userAgent ?? '';
+    const coarse =
+      navigator.maxTouchPoints > 0 &&
+      (matchMedia('(pointer: coarse)').matches || /Android/i.test(ua));
+    if (!coarse) return 'ultra';
+    const mem = navigator.deviceMemory ?? 4; // GB, Chrome Android only
+    const cores = navigator.hardwareConcurrency ?? 4;
+    const small = Math.min(screen.width, screen.height) < 800;
+    return mem <= 4 || cores <= 6 || small ? 'android' : 'low';
+  } catch {
+    return 'ultra';
+  }
+}
+
 const config = createConfig({
-  quality: params.get('q') ?? 'ultra',
+  quality: params.get('q') ?? defaultQuality(),
   deterministic: capture,
 });
 
@@ -79,6 +101,14 @@ const shotApi = installShotApi(engine, { capture, lockstep });
 const warmup = params.get('prewarm') === '0' ? { ok: false, reason: 'disabled by ?prewarm=0' } : await prewarm(engine);
 console.info('[boot] prewarm', warmup);
 window.__PREWARM__ = warmup;
+
+// Android Chrome resizes the visual viewport (URL bar, gestures) without
+// always firing window resize — keep the renderer matched to it.
+try {
+  visualViewport?.addEventListener('resize', () => engine.resize());
+} catch {
+  /* desktop — window resize is enough */
+}
 
 engine.start();
 

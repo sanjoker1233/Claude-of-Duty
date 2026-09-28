@@ -19,6 +19,27 @@ export const UNITS = {
 };
 
 export const QUALITY_PRESETS = {
+  /**
+   * Android web remix: handset GPUs (Mali/Adreno at DPR 2-3) cannot hold the
+   * desktop `low` preset. Half render scale, no per-pixel AO/SSR/volumetrics,
+   * single small cascade set, minimal budgets. Auto-selected on touch
+   * handsets unless `?q=` overrides it — see src/main.js.
+   */
+  android: {
+    renderScale: 0.6,
+    shadowMapSize: 1024,
+    cascades: 2,
+    shadowDistance: 45,
+    taa: false,
+    gtao: false,
+    ssr: false,
+    volumetrics: false,
+    motionBlur: false,
+    bloom: true,
+    anisotropy: 2,
+    particleBudget: 1200,
+    decalBudget: 32,
+  },
   low: {
     renderScale: 0.72,
     shadowMapSize: 1024,

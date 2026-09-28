@@ -27,10 +27,23 @@ export class PauseMenu {
     this.rows = el('div', null, inner);
 
     // ---- quality preset --------------------------------------------------
+    // Android remix: expose the handset preset first on touch hardware.
+    this.presets = [...PRESETS];
+    try {
+      if (
+        ctx.input?.isTouch ||
+        navigator.maxTouchPoints > 0 ||
+        matchMedia('(pointer: coarse)').matches
+      ) {
+        this.presets.unshift('android');
+      }
+    } catch {
+      /* desktop — keep the classic four */
+    }
     this.qBtns = [];
     const qRow = this._row('Graphics Preset');
     const seg = el('div', 'ow-seg', qRow);
-    for (const p of PRESETS) {
+    for (const p of this.presets) {
       const b = el('button', null, seg, p);
       b.type = 'button';
       b.addEventListener('click', () => this.setQuality(p));
@@ -145,7 +158,7 @@ export class PauseMenu {
   syncFromConfig() {
     const cfg = this.ctx.config;
     for (let i = 0; i < this.qBtns.length; i++)
-      this.qBtns[i].classList.toggle('on', PRESETS[i] === cfg.quality);
+      this.qBtns[i].classList.toggle('on', this.presets[i] === cfg.quality);
     for (const [b, v] of this.invBtns) b.classList.toggle('on', !!cfg.invertY === v);
     this.sens?.set((cfg.sensitivity ?? 0.0022) / 0.0022);
     this.fov?.set(cfg.fov ?? 80);

@@ -51,6 +51,16 @@ export class Input {
     this.gamepadIndex = null;
     this.stick = { moveX: 0, moveY: 0, lookX: 0, lookY: 0 };
 
+    /**
+     * Touch controls (Android web remix) write here. Kept separate from
+     * `stick` (overwritten every frame by _pollGamepad) so a connected
+     * gamepad can never clobber an active touchscreen, and vice-versa.
+     * moveX/moveY: -1..1 (y+ = forward, matching moveVector's convention).
+     */
+    this.touchStick = { moveX: 0, moveY: 0 };
+    /** True on coarse-pointer / Android devices; UI uses it to show touch HUD. */
+    this.isTouch = false;
+
     this._bound = {
       keydown: this._onKeyDown.bind(this),
       keyup: this._onKeyUp.bind(this),
@@ -65,6 +75,15 @@ export class Input {
   }
 
   attach() {
+    try {
+      const nav = globalThis.navigator;
+      this.isTouch =
+        (nav && nav.maxTouchPoints > 0) ||
+        (globalThis.matchMedia?.('(pointer: coarse)').matches ?? false) ||
+        /Android|iPhone|iPad|Mobile/i.test(nav?.userAgent ?? '');
+    } catch {
+      this.isTouch = false;
+    }
     addEventListener('keydown', this._bound.keydown);
     addEventListener('keyup', this._bound.keyup);
     addEventListener('mousedown', this._bound.mousedown);
@@ -222,6 +241,29 @@ export class Input {
     return this._released.has(code);
   }
 
+  /**
+   * Touch buttons inject standard codes (Mouse0/Space/KeyR/...) through the
+   * same _pendingDown/_pendingUp pipeline as the keyboard, so `down`,
+   * `_pressed`, `action()` and the getters below just work. These two helpers
+   * are the only API the touch overlay needs.
+   */
+  touchDown(code) {
+    if (!this.enabled) return;
+    this._pendingDown.add(code);
+  }
+
+  touchUp(code) {
+    if (!this.enabled) return;
+    this._pendingUp.add(code);
+  }
+
+  /** Direct look-delta injection for touch drags (no pointer lock needed). */
+  addTouchLook(dxPx, dyPx) {
+    if (!this.enabled || this.frozen) return;
+    this._rawLook.x += dxPx;
+    this._rawLook.y += dyPx;
+  }
+
   get fire() {
     return this.down.has('Mouse0');
   }
@@ -241,6 +283,8 @@ export class Input {
     let y = (this.action('forward') ? 1 : 0) - (this.action('back') ? 1 : 0);
     x += this.stick.moveX;
     y -= this.stick.moveY;
+    x += this.touchStick.moveX;
+    y += this.touchStick.moveY;
     const len = Math.hypot(x, y);
     if (len > 1) {
       x /= len;

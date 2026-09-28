@@ -866,7 +866,16 @@ export class RenderSystem {
   // ==========================================================================
 
   resize(w, h, ctx) {
-    const pr = Math.min(globalThis.devicePixelRatio || 1, 1.5);
+    // Android remix: handset GPUs at DPR 2-3 push 3-8 MP through the full
+    // HDR chain — cap coarse-pointer devices at 1x (the `android` preset
+    // scales below that via renderScale). Desktop keeps the 1.5 cap.
+    let prCap = 1.5;
+    try {
+      if (matchMedia('(pointer: coarse)').matches) prCap = 1;
+    } catch {
+      /* SSR/tests — keep the desktop cap */
+    }
+    const pr = Math.min(globalThis.devicePixelRatio || 1, prCap);
     this.renderer.setPixelRatio(pr);
     this.renderer.setSize(w, h, false);
 

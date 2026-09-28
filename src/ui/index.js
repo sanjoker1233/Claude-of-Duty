@@ -13,6 +13,7 @@ import { WorldMarkers } from './markers.js';
 import { Prompt, Banner } from './prompts.js';
 import { PauseMenu } from './menu.js';
 import { CombatDemo } from './demo.js';
+import { TouchControls } from './touch.js';
 
 const MAX_BLIPS = 48;
 
@@ -91,6 +92,8 @@ export class UiSystem {
     this.prompt = new Prompt(this.chromeLayer);
     this.banner = new Banner(this.chromeLayer);
     this.menu = new PauseMenu(this.root, ctx);
+    // Android web remix: touch overlay (self-hides on desktop).
+    this.touch = new TouchControls(this.root, ctx);
 
     this.health.onBeat = (i) => this.sfx('heartbeat', 0.35 + i * 0.5);
 
@@ -409,13 +412,15 @@ export class UiSystem {
     if (ctx.input.enabled && !ctx.input.frozen) {
       if (ctx.input.actionPressed('pause')) this.menu.toggle();
       // Losing pointer lock mid-match is the same intent as pressing Escape.
+      // Touch devices never take pointer lock — ignore the transition there.
       if (ctx.input.pointerLocked) this._hadPointerLock = true;
-      else if (this._hadPointerLock && !this.menu.open) {
+      else if (this._hadPointerLock && !this.menu.open && !this.touch?.enabled) {
         this._hadPointerLock = false;
         this.menu.show();
       }
     }
     this.menu.update(rawDt);
+    this.touch?.update();
 
     // ---- external state --------------------------------------------------
     // `simulate` means a scripted debug timeline owns the HUD numbers; letting
@@ -606,6 +611,7 @@ export class UiSystem {
     this.markers.dispose();
     this.prompt.dispose();
     this.banner.dispose();
+    this.touch?.dispose();
     this.menu.dispose();
     this.root.remove();
     removeStyles();
